@@ -1,0 +1,27 @@
+{
+  "current": {
+    "hour": "2025-04-09T15:00:00",
+    "community_depleted": 100.0,
+    "grid_portion": 8.45
+  },
+  "historical": [
+    {
+      "hour": "2025-04-09T12:00:00",
+      "community_produced": 18.5,
+      "community_used": 17.9,
+      "grid_used": 1.1
+    },
+    {
+      "hour": "2025-04-09T13:00:00",
+      "community_produced": 20.0,
+      "community_used": 21.2,
+      "grid_used": 2.0
+    },
+    {
+      "hour": "2025-04-09T14:00:00",
+      "community_produced": 22.4,
+      "community_used": 22.4,
+      "grid_used": 0.0
+    }
+  ]
+}
