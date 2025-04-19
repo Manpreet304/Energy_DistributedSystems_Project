@@ -1,26 +1,38 @@
 package com.example.demo.controller;
+
 import com.example.demo.dto.EnergyData;
 import org.springframework.web.bind.annotation.*;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/energy")
 public class EnergyController {
 
-
     @GetMapping("/current")
-    public EnergyData getCurrentData() {
+    public List<EnergyData> getCurrentData() {
         List<EnergyData> data = generateData();
-        if (data.isEmpty()) {
-            return null;
-        } else {
-            return data.get(data.size() - 1);
+        List<EnergyData> currentData = new ArrayList<>();
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.HOUR, -1);
+        Date oneHourAgo = cal.getTime();
+
+        for (EnergyData d : data) {
+            if (!d.getHour().before(oneHourAgo) && !d.getHour().after(now)) {
+                currentData.add(d);
+            }
         }
+
+        return currentData;
     }
 
     @GetMapping("/historical")
-    public List<EnergyData> getHistoricalData(@RequestParam("dateStart") Date dateStart, @RequestParam("dateEnd") Date dateEnd) {
+    public List<EnergyData> getHistoricalData(@RequestParam("dateStart") Date dateStart,
+                                              @RequestParam("dateEnd") Date dateEnd) {
         List<EnergyData> data = generateData();
         List<EnergyData> result = new ArrayList<>();
 
@@ -46,6 +58,4 @@ public class EnergyController {
         }
         return dataList;
     }
-
-
 }
