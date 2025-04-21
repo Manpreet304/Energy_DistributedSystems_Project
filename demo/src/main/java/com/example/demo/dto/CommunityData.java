@@ -2,15 +2,25 @@ package com.example.demo.dto;
 
 import java.util.Date;
 
-public class Community {
-    private Type type;
+public class CommunityData {
+    private String type;
+    private String association;
     private double kwh;
     private Date datetime;
 
-    public Community(double kwh, Date datetime) {
-        this.type = Type.USER;
+    public CommunityData(String type, String association, double kwh, Date datetime) {
+        this.type = type;
+        this.association = association;
         this.kwh = kwh;
         this.datetime = datetime;
+    }
+
+    public String getAssociation() {
+        return association;
+    }
+
+    public void setAssociation(String association) {
+        this.association = association;
     }
 
     public double getKwh() {
@@ -29,11 +39,11 @@ public class Community {
         this.datetime = datetime;
     }
 
-    public Type getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(String type) {
         this.type = type;
     }
 }
