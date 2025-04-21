@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.EnergyData;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
@@ -30,17 +31,28 @@ public class EnergyController {
         return currentData;
     }
 
+
+
     @GetMapping("/historical")
-    public List<EnergyData> getHistoricalData(@RequestParam("dateStart") Date dateStart,
-                                              @RequestParam("dateEnd") Date dateEnd) {
+    public List<EnergyData> getHistoricalData(
+            @RequestParam(value = "dateStart", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateStart,
+
+            @RequestParam(value = "dateEnd", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateEnd) {
+
         List<EnergyData> data = generateData();
         List<EnergyData> result = new ArrayList<>();
 
         for (EnergyData d : data) {
-            if (!d.getHour().before(dateStart) && !d.getHour().after(dateEnd)) {
+            boolean afterStart = (dateStart == null || !d.getHour().before(dateStart));
+            boolean beforeEnd = (dateEnd == null || !d.getHour().after(dateEnd));
+
+            if (afterStart && beforeEnd) {
                 result.add(d);
             }
         }
+
         return result;
     }
 
