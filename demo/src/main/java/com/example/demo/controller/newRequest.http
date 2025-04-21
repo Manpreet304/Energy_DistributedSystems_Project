@@ -1,0 +1,11 @@
+POST http://localhost:8080/energy/current
+Content-Type: application/json
+
+[
+  {
+    "hour": "2025-04-21T20:30:00",
+    "community_produced": 25.7,
+    "community_used": 30.9,
+    "grid_used": 1.3
+  }
+]

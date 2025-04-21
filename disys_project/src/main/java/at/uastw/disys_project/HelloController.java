@@ -1,6 +1,7 @@
 package at.uastw.disys_project;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -25,7 +26,10 @@ public class HelloController {
     @FXML private Label labelGridUsed;
 
     private final HttpClient client = HttpClient.newHttpClient();
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+            .create();
+
 
     @FXML
     protected void handleRefresh() {
@@ -37,19 +41,27 @@ public class HelloController {
                 .thenApply(HttpResponse::body)
                 .thenAccept(json -> {
                     try {
-                        EnergyData[] dataArray = gson.fromJson(json, EnergyData[].class);
 
-                        if (dataArray.length > 0) {
-                            EnergyData latest = dataArray[dataArray.length - 1];
+                        java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<EnergyData>>() {}.getType();
+                        java.util.List<EnergyData> dataList = gson.fromJson(json, listType);
+
+                        if (dataList != null && !dataList.isEmpty()) {
+                            EnergyData latest = dataList.get(dataList.size() - 1);
 
                             double used = latest.getCommunity_used();
                             double total = used + latest.getGrid_used();
-                            double percentUsed = (total > 0) ? (used / total) * 100 : 0;
-                            double percentGrid = 100 - percentUsed;
+                            double percentUsed = (used > 0) ? (used / total) * 100 : 0;
+                            double percentGrid = (used > 0) ? 100 - percentUsed: 0;
+
 
                             Platform.runLater(() -> {
                                 labelCommunityPercent.setText(String.format("%.2f%% used", percentUsed));
-                                labelGridPercent.setText(String.format("%.2f%%", percentGrid));
+                                labelGridPercent.setText(String.format("%.2f%% from grid", percentGrid));
+                            });
+                        } else {
+                            Platform.runLater(() -> {
+                                labelCommunityPercent.setText("Keine aktuellen Daten");
+                                labelGridPercent.setText("");
                             });
                         }
                     } catch (Exception e) {
@@ -57,6 +69,7 @@ public class HelloController {
                     }
                 });
     }
+
 
     @FXML
     protected void handleShowData() {

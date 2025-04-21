@@ -1,15 +1,17 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 public class EnergyData {
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Date hour;
     private double community_produced;
     private double community_used;
     private double grid_used;
 
-    public EnergyData() {
-    }
+    public EnergyData() {}
 
     public EnergyData(Date hour, double community_produced, double community_used, double grid_used) {
         this.hour = hour;
@@ -50,4 +52,3 @@ public class EnergyData {
         this.grid_used = grid_used;
     }
 }
-
