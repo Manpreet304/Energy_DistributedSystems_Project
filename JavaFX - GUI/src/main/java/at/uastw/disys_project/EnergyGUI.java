@@ -8,12 +8,11 @@ import javafx.scene.control.*;
 
 import java.net.URI;
 import java.net.http.*;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class HelloController {
+public class EnergyGUI {
 
     @FXML private Label labelCommunityPercent;
     @FXML private Label labelGridPercent;
@@ -60,7 +59,7 @@ public class HelloController {
                             });
                         } else {
                             Platform.runLater(() -> {
-                                labelCommunityPercent.setText("Keine aktuellen Daten");
+                                labelCommunityPercent.setText("Keine aktuellen Daten in der letzten Stunde gefunden!");
                                 labelGridPercent.setText("");
                             });
                         }

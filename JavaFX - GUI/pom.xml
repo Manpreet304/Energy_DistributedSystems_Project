@@ -72,7 +72,7 @@
           <execution>
             <id>default-cli</id>
             <configuration>
-              <mainClass>at.uastw.disys_project.HelloApplication</mainClass>
+              <mainClass>at.uastw.disys_project.Application</mainClass>
               <launcher>app</launcher>
               <jlinkZipName>app</jlinkZipName>
               <jlinkImageName>app</jlinkImageName>
