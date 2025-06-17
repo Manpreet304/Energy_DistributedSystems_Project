@@ -80,7 +80,7 @@
               <stripDebug>true</stripDebug>
               <noHeaderFiles>true</noHeaderFiles>
 
-              <!-- ✅ Module options -->
+              <!-- Module options -->
               <options>
                 <option>--add-modules</option>
                 <option>javafx.controls,javafx.fxml</option>

@@ -1,5 +1,6 @@
 package at.uastw.disys_project;
 
+import at.uastw.disys_project.dto.CurrentPercentageEntity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
@@ -40,26 +41,22 @@ public class EnergyGUI {
                 .thenApply(HttpResponse::body)
                 .thenAccept(json -> {
                     try {
-
-                        java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<EnergyData>>() {}.getType();
-                        java.util.List<EnergyData> dataList = gson.fromJson(json, listType);
+                        java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<CurrentPercentageEntity>>() {}.getType();
+                        java.util.List<CurrentPercentageEntity> dataList = gson.fromJson(json, listType);
 
                         if (dataList != null && !dataList.isEmpty()) {
-                            EnergyData latest = dataList.get(dataList.size() - 1);
+                            CurrentPercentageEntity latest = dataList.get(dataList.size() - 1);
 
-                            double used = latest.getCommunity_used();
-                            double total = used + latest.getGrid_used();
-                            double percentUsed = (used > 0) ? (used / total) * 100 : 0;
-                            double percentGrid = (used > 0) ? 100 - percentUsed: 0;
-
+                            double communityDepleted = latest.getCommunity_depleted();
+                            double gridPortion = latest.getGrid_portion();
 
                             Platform.runLater(() -> {
-                                labelCommunityPercent.setText(String.format("%.2f%% used", percentUsed));
-                                labelGridPercent.setText(String.format("%.2f%% from grid", percentGrid));
+                                labelCommunityPercent.setText(String.format("%.2f kWh verbraucht", communityDepleted));
+                                labelGridPercent.setText(String.format("%.2f %% aus Netz", gridPortion));
                             });
                         } else {
                             Platform.runLater(() -> {
-                                labelCommunityPercent.setText("Keine aktuellen Daten in der letzten Stunde gefunden!");
+                                labelCommunityPercent.setText("Keine aktuellen Daten gefunden!");
                                 labelGridPercent.setText("");
                             });
                         }
@@ -68,6 +65,7 @@ public class EnergyGUI {
                     }
                 });
     }
+
 
 
     @FXML
