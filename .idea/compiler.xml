@@ -6,14 +6,30 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="demo" />
+        <module name="UsageService" />
+        <module name="demo (2)" />
+        <module name="demo (1)" />
+        <module name="EnergyUser" />
+        <module name="EnergyProducer" />
         <module name="disys_project" />
+        <module name="CurrentPercentageService" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="demo" target="21" />
+      <module name="REST-API" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="CurrentPercentageService" options="-parameters" />
+      <module name="EnergyProducer" options="-parameters" />
+      <module name="EnergyUser" options="-parameters" />
+      <module name="REST-API" options="-parameters" />
+      <module name="UsageService" options="-parameters" />
       <module name="demo" options="-parameters" />
+      <module name="demo (1)" options="-parameters" />
+      <module name="demo (2)" options="-parameters" />
     </option>
   </component>
 </project>
