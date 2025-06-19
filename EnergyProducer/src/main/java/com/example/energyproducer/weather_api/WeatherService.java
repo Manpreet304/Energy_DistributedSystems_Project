@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 @Service
@@ -28,20 +29,28 @@ public class WeatherService {
      * und liefert den letzten (also aktuellen) shortwave_radiation–Wert.
      */
     public double fetchCurrentRadiation() {
-
         String url = baseUrl +
                 "?latitude="  + latitude +
                 "&longitude=" + longitude +
-                "&hourly=shortwave_radiation";
+                "&hourly=shortwave_radiation" +
+                "&timezone=auto";                 // wichtig: lokale Zeit!
 
-        // JSON-Antwort als String
         String json = restTemplate.getForObject(url, String.class);
 
-        // Parsen mit org.json (kein neues Mapping)
-        JSONObject root = new JSONObject(json);
-        JSONObject hourly = root.getJSONObject("hourly");
-        JSONArray radArray = hourly.getJSONArray("shortwave_radiation");
+        JSONObject hourly = new JSONObject(json).getJSONObject("hourly");
+        JSONArray times   = hourly.getJSONArray("time");
+        JSONArray rad     = hourly.getJSONArray("shortwave_radiation");
 
-        return radArray.getDouble(radArray.length() - 1);
+        String now = LocalDateTime.now()
+                .withMinute(0).withSecond(0).withNano(0) // auf volle Stunde
+                .toString();                              // Format yyyy-MM-ddTHH:mm
+
+        for (int i = 0; i < times.length(); i++) {
+            if (times.getString(i).startsWith(now)) {   // Zeitstempel passt
+                return rad.getDouble(i);
+            }
+        }
+        return 0; // Fallback
     }
+
 }

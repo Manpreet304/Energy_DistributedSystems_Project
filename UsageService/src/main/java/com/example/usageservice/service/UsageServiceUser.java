@@ -29,6 +29,7 @@ public class UsageServiceUser {
         try {
             JSONObject obj = new JSONObject(json);
             double kwh = obj.getDouble("kwh");
+            System.out.println("User kwh: " + kwh);
             LocalDateTime dateTime = LocalDateTime.parse(obj.getString("datetime"));
             // 2) Auf volle Stunde runden
             LocalDateTime truncated = dateTime.truncatedTo(ChronoUnit.HOURS);
@@ -37,8 +38,18 @@ public class UsageServiceUser {
             // 3) DB-Eintrag holen oder neu erstellen
             Optional<EnergyDataEntity> optEntry = repository.findByHour(hour);
             EnergyDataEntity entry;
+
+
+
+
+
             if (optEntry.isPresent()) {
                 entry = optEntry.get();
+                System.out.println("data from user_mq if optEntry.isPresent() true: ");
+                System.out.println(entry.getHour());
+                System.out.println(entry.getCommunityProduced());
+                System.out.println(entry.getCommunityUsed());
+                System.out.println(entry.getGridUsed());
             } else {
                 entry = new EnergyDataEntity();
                 entry.setHour(hour);
@@ -53,11 +64,18 @@ public class UsageServiceUser {
             double community_used = entry.getCommunityUsed();
             double grid_used = entry.getGridUsed();
 
-            if(community_used + kwh >= community_produced){
-                grid_used = kwh - (community_produced - community_used);
-                community_used = community_produced;
 
+            if(community_used + kwh >= community_produced){
+                grid_used = grid_used + (kwh - (community_produced - community_used));
+                grid_used = Math.round(grid_used * 1000.0) / 1000.0;
+                community_used = community_produced;
+            }else{
+                community_used = community_used + kwh;
             }
+            System.out.println("After Calculations: ");
+            System.out.println("community_produced: " + community_produced);
+            System.out.println("community_used: " + community_used);
+            System.out.println("grid_used: " + grid_used);
 
             entry.setCommunityUsed(community_used);
             entry.setGridUsed(grid_used);

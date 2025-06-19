@@ -60,4 +60,14 @@ public class EnergyDataEntity {
     public void setGridUsed(double gridUsed) {
         this.gridUsed = gridUsed;
     }
+
+    @Override
+    public String toString() {
+        return "EnergyDataEntity{" +
+                "hour=" + hour +
+                ", communityProduced=" + communityProduced +
+                ", communityUsed=" + communityUsed +
+                ", gridUsed=" + gridUsed +
+                '}';
+    }
 }

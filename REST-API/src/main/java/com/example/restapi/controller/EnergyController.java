@@ -1,6 +1,7 @@
 package com.example.restapi.controller;
 
 
+import com.example.restapi.dto.TotalEnergyBetweenDates;
 import com.example.restapi.repository.CurrentPercentageDB;
 import com.example.restapi.repository.CurrentPercentageEntity;
 import com.example.restapi.repository.EnergyDB;
@@ -34,19 +35,30 @@ public class EnergyController {
         if (last != null) {
             result.add(last);
         }
+        for (CurrentPercentageEntity r:result
+             ) {
+            System.out.println(r.toString());
+        }
         return result;
     }
 
 
     @GetMapping("/historical")
-    public List<EnergyDataEntity> getHistoricalData(
-            @RequestParam("dateStart")
-            @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateStart,
+    public TotalEnergyBetweenDates getHistoricalData(
+        @RequestParam("dateStart")
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateStart,
 
-            @RequestParam("dateEnd")
-            @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateEnd) {
+        @RequestParam("dateEnd")
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateEnd) {
 
-        return energyDbRepository.findByHourBetween(dateStart, dateEnd);
+        double produced = energyDbRepository.selectCommunityProducedTotals();
+        double used = energyDbRepository.selectCommunityUsedTotals();
+        double grid = energyDbRepository.selectGridUsedTotals();
+
+        TotalEnergyBetweenDates energyData = new TotalEnergyBetweenDates(produced, used, grid);
+        System.out.println(energyData.toString());
+
+        return energyData;
     }
 
 

@@ -18,7 +18,6 @@ public class CurrentPercentageService {
 
     @RabbitListener(queues = "current_percentage_mq")
     public void enterCurrentPercentageInDB(String json){
-        System.out.println("Listening to current_percentage_mq");
 
         try {
             JSONObject obj = new JSONObject(json);
@@ -42,6 +41,7 @@ public class CurrentPercentageService {
 
         } catch (Exception e) {
             System.out.println("Error while parsing incoming JSON in enterCurrentPercentageInDB");
+            e.printStackTrace();
         }
 
     }

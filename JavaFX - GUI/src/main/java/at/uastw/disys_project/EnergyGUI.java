@@ -1,6 +1,7 @@
 package at.uastw.disys_project;
 
 import at.uastw.disys_project.dto.CurrentPercentageEntity;
+import at.uastw.disys_project.dto.TotalEnergyBetweenDates;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
@@ -37,6 +38,8 @@ public class EnergyGUI {
                 .uri(URI.create("http://localhost:8080/energy/current"))
                 .build();
 
+
+
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenAccept(json -> {
@@ -47,8 +50,8 @@ public class EnergyGUI {
                         if (dataList != null && !dataList.isEmpty()) {
                             CurrentPercentageEntity latest = dataList.get(dataList.size() - 1);
 
-                            double communityDepleted = latest.getCommunity_depleted();
-                            double gridPortion = latest.getGrid_portion();
+                            double communityDepleted = latest.getCommunityDepleted();
+                            double gridPortion = latest.getGridPortion();
 
                             Platform.runLater(() -> {
                                 labelCommunityPercent.setText(String.format("%.2f kWh verbraucht", communityDepleted));
@@ -91,33 +94,27 @@ public class EnergyGUI {
                 .uri(URI.create(url))
                 .build();
 
+
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenAccept(json -> {
                     try {
-                        EnergyData[] dataArray = gson.fromJson(json, EnergyData[].class);
+                        TotalEnergyBetweenDates totals =
+                                gson.fromJson(json, TotalEnergyBetweenDates.class);
 
-                        if (dataArray.length == 0) {
+                        if (totals == null) {
                             System.out.println("Keine Daten aus /historical erhalten.");
                             return;
                         }
 
-                        double produced = 0, used = 0, grid = 0;
-
-                        for (EnergyData d : dataArray) {
-                            produced += d.getCommunity_produced();
-                            used += d.getCommunity_used();
-                            grid += d.getGrid_used();
-                        }
-
-                        double finalProduced = produced;
-                        double finalUsed = used;
-                        double finalGrid = grid;
+                        double produced = totals.getTotalCommunityProduced();
+                        double used     = totals.getTotalCommunityUsed();
+                        double grid     = totals.getTotalGridUsed();
 
                         Platform.runLater(() -> {
-                            labelProduced.setText(String.format("%.3f kWh", finalProduced));
-                            labelUsed.setText(String.format("%.3f kWh", finalUsed));
-                            labelGridUsed.setText(String.format("%.3f kWh", finalGrid));
+                            labelProduced.setText(String.format("%.3f kWh", produced));
+                            labelUsed.setText    (String.format("%.3f kWh", used));
+                            labelGridUsed.setText(String.format("%.3f kWh", grid));
                         });
 
                     } catch (Exception e) {
@@ -125,5 +122,7 @@ public class EnergyGUI {
                         e.printStackTrace();
                     }
                 });
+
+
     }
 }
