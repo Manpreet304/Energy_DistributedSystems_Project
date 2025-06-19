@@ -30,8 +30,8 @@ public class EnergyProducer {
     }
 
     private static double randomKwh() {
-        double min = 0.001;
-        double max = 0.010;
+        double min = 0.005;
+        double max = 0.100;
         double value = min + (max - min) * RANDOM.nextDouble();
         return Math.round(value * 1000.0) / 1000.0; // round to 3 decimals
     }
@@ -58,6 +58,12 @@ public class EnergyProducer {
         double baseKwh      = randomKwh();
         double productionFactor = radiation / MAX_RADIATION;
         double adjustedKwh  = baseKwh * productionFactor;
+
+
+        System.out.println("baseKwh: " + baseKwh);
+        System.out.println("radiation: " + radiation);
+        System.out.println("productionFactor: " + productionFactor);
+        System.out.println("adjustedKwH: " + adjustedKwh);
 
         // 3. JSON mit skalierten kWh
         String json = String.format(

@@ -22,7 +22,7 @@ public class EnergyUser {
 
     private static double randomKwh() {
         double min = 0.001;
-        double max = 0.010;
+        double max = 0.060;
         double value = min + (max - min) * RANDOM.nextDouble();
         return Math.round(value * 1000.0) / 1000.0; // round to 3 decimals
     }

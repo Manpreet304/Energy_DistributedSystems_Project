@@ -46,4 +46,13 @@ public class CurrentPercentageEntity {
     public void setGridPortion(double gridPortion) {
         this.gridPortion = gridPortion;
     }
+
+    @Override
+    public String toString() {
+        return "CurrentPercentageEntity{" +
+                "hour=" + hour +
+                ", communityDepleted=" + communityDepleted +
+                ", gridPortion=" + gridPortion +
+                '}';
+    }
 }

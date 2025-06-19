@@ -18,9 +18,11 @@ public class UsageServiceProducer {
 
 
     private final DatabaseRepository repository;
+    private final RabbitTemplate rabbit;
 
-    public UsageServiceProducer(DatabaseRepository repository) {
+    public UsageServiceProducer(DatabaseRepository repository, RabbitTemplate rabbit) {
         this.repository = repository;
+        this.rabbit = rabbit;
     }
 
     @RabbitListener(queues = "producer_mq")
@@ -28,6 +30,7 @@ public class UsageServiceProducer {
         try {
             JSONObject obj = new JSONObject(json);
             double kwh = obj.getDouble("kwh");
+            System.out.println("Producer kwh: " + kwh);
             LocalDateTime dateTime = LocalDateTime.parse(obj.getString("datetime"));
 
             // 2) Auf volle Stunde runden
@@ -48,12 +51,22 @@ public class UsageServiceProducer {
                 repository.save(entry);
                 return;
             }
+            System.out.println("Producer entry.getCommunityProduced() = " + entry.getCommunityProduced());
             // 4) Produktionswert erhöhen
             entry.setCommunityProduced(entry.getCommunityProduced() + kwh);
+            System.out.println("Producer after inserting new entry in DB entry.getCommunityProduced() = " + entry.getCommunityProduced());
 
             // 5) Speichern (Insert oder Update)
             repository.save(entry);
             System.out.println(entry.toString() + " from Producer saved in DB");
+            JSONObject msg = new JSONObject()
+                    .put("hour", entry.getHour().toInstant())
+                    .put("communityProduced", entry.getCommunityProduced())
+                    .put("communityUsed", entry.getCommunityUsed())
+                    .put("gridUsed", entry.getGridUsed());
+
+            rabbit.convertAndSend("current_percentage_mq", msg.toString());
+            System.out.println(msg.toString() + "from UsageServiceProducer sent to current_percentage_mq");
 
 
 
