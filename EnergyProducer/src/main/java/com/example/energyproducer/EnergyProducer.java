@@ -19,14 +19,14 @@ public class EnergyProducer {
     private static final double MAX_RADIATION = 1000.0;
 
 
-    @Autowired
-    private WeatherService weatherService;
+    private final WeatherService weatherService;
 
 
     private static final Random RANDOM = new Random();
 
-    public EnergyProducer(RabbitTemplate rabbit) {
+    public EnergyProducer(RabbitTemplate rabbit, WeatherService weatherService) {
         this.rabbit = rabbit;
+        this.weatherService = weatherService; //Konstruktor erweitert, damit der Test funktioniert mit InjectMockito
     }
 
     private static double randomKwh() {
