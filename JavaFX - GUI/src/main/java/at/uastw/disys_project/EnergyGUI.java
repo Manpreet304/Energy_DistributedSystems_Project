@@ -1,16 +1,15 @@
 package at.uastw.disys_project;
 
-import at.uastw.disys_project.dto.CurrentPercentageEntity;
-import at.uastw.disys_project.dto.TotalEnergyBetweenDates;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import javafx.application.Platform;
+import com.google.gson.JsonObject;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import java.net.URI;
-import java.net.http.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -26,103 +25,91 @@ public class EnergyGUI {
     @FXML private Label labelUsed;
     @FXML private Label labelGridUsed;
 
-    private final HttpClient client = HttpClient.newHttpClient();
-    private final Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-            .create();
-
-
     @FXML
-    protected void handleRefresh() {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/energy/current"))
-                .build();
+    public void initialize() {
+        // REFRESH BUTTON
+        // Holt aktuelle Werte von /energy/current
+        labelCommunityPercent.setText("");
+        labelGridPercent.setText("");
+        labelProduced.setText("");
+        labelUsed.setText("");
+        labelGridUsed.setText("");
 
+        HttpClient client = HttpClient.newBuilder().build();
 
+        // Refresh Button
+        // Muss in FXML als fx:id="btnRefresh" vorhanden sein und mit fx:controller verknüpft
+        // Oder durch z. B. Button-Handler aus FXML über @FXML public void handleRefreshButton()...
 
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(json -> {
-                    try {
-                        java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<CurrentPercentageEntity>>() {}.getType();
-                        java.util.List<CurrentPercentageEntity> dataList = gson.fromJson(json, listType);
-
-                        if (dataList != null && !dataList.isEmpty()) {
-                            CurrentPercentageEntity latest = dataList.get(dataList.size() - 1);
-
-                            double communityDepleted = latest.getCommunityDepleted();
-                            double gridPortion = latest.getGridPortion();
-
-                            Platform.runLater(() -> {
-                                labelCommunityPercent.setText(String.format("%.2f kWh verbraucht", communityDepleted));
-                                labelGridPercent.setText(String.format("%.2f %% aus Netz", gridPortion));
-                            });
-                        } else {
-                            Platform.runLater(() -> {
-                                labelCommunityPercent.setText("Keine aktuellen Daten gefunden!");
-                                labelGridPercent.setText("");
-                            });
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+        // SHOW DATA Button (historische Werte)
+        // Beispielhaft über separate Methode aufgerufen
     }
 
+    @FXML
+    protected void onRefreshClick() {
+        try {
+            HttpClient client = HttpClient.newBuilder().build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/energy/current"))
+                    .GET()
+                    .build();
 
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String body = response.body();
+
+            String community = body.split("communityDepleted\":")[1].split(",")[0];
+            String grid = body.split("gridPortion\":")[1].split("}")[0];
+
+            labelCommunityPercent.setText(community + " % aus Community-Strom verbraucht");
+            labelGridPercent.setText(grid + " % aus öffentlichem Netz");
+
+        } catch (Exception e) {
+            System.err.println("Fehler bei Refresh: " + e.getMessage());
+        }
+    }
 
     @FXML
-    protected void handleShowData() {
-        LocalDate start = startDate.getValue();
-        LocalDate end = endDate.getValue();
-        String startTimeText = startTime.getText();
-        String endTimeText = endTime.getText();
+    protected void onShowDataClick() {
+        try {
+            // Eingaben prüfen
+            if (startDate.getValue() == null || endDate.getValue() == null ||
+                    startTime.getText().isEmpty() || endTime.getText().isEmpty()) {
+                System.out.println("Bitte alle Zeitangaben ausfüllen!");
+                return;
+            }
 
-        if (start == null || end == null || startTimeText.isEmpty() || endTimeText.isEmpty()) {
-            System.out.println("Bitte Datum und Uhrzeit eingeben.");
-            return;
+            LocalDate startD = startDate.getValue();
+            LocalTime startT = LocalTime.parse(startTime.getText());
+            LocalDate endD = endDate.getValue();
+            LocalTime endT = LocalTime.parse(endTime.getText());
+
+            String dateStart = startD.atTime(startT).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            String dateEnd = endD.atTime(endT).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+
+            String url = "http://localhost:8080/energy/historical?dateStart=" + dateStart + "&dateEnd=" + dateEnd;
+
+            HttpClient client = HttpClient.newBuilder().build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String body = response.body();
+
+
+
+
+            String produced = body.split("totalCommunityProduced\":")[1].split(",")[0];
+            String used = body.split("totalCommunityUsed\":")[1].split(",")[0];
+            String grid = body.split("totalGridUsed\":")[1].split("}")[0];
+
+            labelProduced.setText(produced + " kWh");
+            labelUsed.setText(used + " kWh");
+            labelGridUsed.setText(grid + " kWh");
+
+        } catch (Exception e) {
+            System.err.println("Fehler beim Abrufen der Daten: " + e.getMessage());
         }
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        String dateStart = start.atTime(LocalTime.parse(startTimeText)).format(formatter);
-        String dateEnd = end.atTime(LocalTime.parse(endTimeText)).format(formatter);
-
-        String url = "http://localhost:8080/energy/historical?dateStart=" + dateStart + "&dateEnd=" + dateEnd;
-        System.out.println("Sende Request an:\n" + url);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .build();
-
-
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(json -> {
-                    try {
-                        TotalEnergyBetweenDates totals =
-                                gson.fromJson(json, TotalEnergyBetweenDates.class);
-
-                        if (totals == null) {
-                            System.out.println("Keine Daten aus /historical erhalten.");
-                            return;
-                        }
-
-                        double produced = totals.getTotalCommunityProduced();
-                        double used     = totals.getTotalCommunityUsed();
-                        double grid     = totals.getTotalGridUsed();
-
-                        Platform.runLater(() -> {
-                            labelProduced.setText(String.format("%.3f kWh", produced));
-                            labelUsed.setText    (String.format("%.3f kWh", used));
-                            labelGridUsed.setText(String.format("%.3f kWh", grid));
-                        });
-
-                    } catch (Exception e) {
-                        System.out.println("Fehler beim Parsen von /historical:");
-                        e.printStackTrace();
-                    }
-                });
-
-
     }
 }

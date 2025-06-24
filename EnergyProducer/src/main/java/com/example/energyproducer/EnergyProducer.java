@@ -1,14 +1,12 @@
 package com.example.energyproducer;
 
 import com.example.energyproducer.weather_api.WeatherService;
+import org.json.JSONObject;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -29,17 +27,11 @@ public class EnergyProducer {
         this.weatherService = weatherService; //Konstruktor erweitert, damit der Test funktioniert mit InjectMockito
     }
 
-    private static double randomKwh() {
+    public static double randomKwh() {
         double min = 0.005;
         double max = 0.100;
         double value = min + (max - min) * RANDOM.nextDouble();
         return Math.round(value * 1000.0) / 1000.0; // round to 3 decimals
-    }
-    private static int randomIntervall(){
-        int min = 1000;
-        int max = 5000;
-        return RANDOM.nextInt(max - min + 1) + min;
-
     }
 
     public void sendMessage(String message) {
@@ -47,7 +39,7 @@ public class EnergyProducer {
     }
 
 
-    //Prof meinte hier ich soll noch ein jsonObject draus machen
+
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
     public void startProducer() {
 
@@ -65,15 +57,13 @@ public class EnergyProducer {
         System.out.println("productionFactor: " + productionFactor);
         System.out.println("adjustedKwH: " + adjustedKwh);
 
-        // 3. JSON mit skalierten kWh
-        String json = String.format(
-                Locale.US,
-                "{\"type\":\"PRODUCER\",\"association\":\"COMMUNITY\",\"kwh\":%.3f,\"datetime\":\"%s\"}",
-                adjustedKwh,
-                LocalDateTime.now()
-        );
+        JSONObject json = new JSONObject()
+                .put("type", "PRODUCER")
+                .put("association", "COMMUNITY")
+                .put("kwh", adjustedKwh)
+                .put("datetime", LocalDateTime.now());
         System.out.println(json);
-        sendMessage(json);
+        sendMessage(json.toString());
 
 
     }

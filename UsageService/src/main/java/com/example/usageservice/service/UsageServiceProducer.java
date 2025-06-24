@@ -38,10 +38,24 @@ public class UsageServiceProducer {
             Date hour = Date.from(truncated.atZone(ZoneId.systemDefault()).toInstant());
 
             // 3) DB-Eintrag holen oder neu erstellen
-            Optional<EnergyDataEntity> optEntry = repository.findByHour(hour);
-            EnergyDataEntity entry;
-            if (optEntry.isPresent()) {
-                entry = optEntry.get();
+            EnergyDataEntity entry = repository.findByHour(hour);
+            if (entry != null) {
+                System.out.println("Producer entry.getCommunityProduced() = " + entry.getCommunityProduced());
+                // 4) Produktionswert erhöhen
+                entry.setCommunityProduced(entry.getCommunityProduced() + kwh);
+                System.out.println("Producer after inserting new entry in DB entry.getCommunityProduced() = " + entry.getCommunityProduced());
+
+                // 5) Speichern (Insert oder Update)
+                repository.save(entry);
+                System.out.println(entry.toString() + " from Producer saved in DB");
+                JSONObject msg = new JSONObject()
+                        .put("hour", entry.getHour().toInstant())
+                        .put("communityProduced", entry.getCommunityProduced())
+                        .put("communityUsed", entry.getCommunityUsed())
+                        .put("gridUsed", entry.getGridUsed());
+
+                rabbit.convertAndSend("current_percentage_mq", msg.toString());
+                System.out.println(msg.toString() + "from UsageServiceProducer sent to current_percentage_mq");
             } else {
                 entry = new EnergyDataEntity();
                 entry.setHour(hour);
@@ -49,24 +63,8 @@ public class UsageServiceProducer {
                 entry.setCommunityUsed(0);
                 entry.setGridUsed(0);
                 repository.save(entry);
-                return;
             }
-            System.out.println("Producer entry.getCommunityProduced() = " + entry.getCommunityProduced());
-            // 4) Produktionswert erhöhen
-            entry.setCommunityProduced(entry.getCommunityProduced() + kwh);
-            System.out.println("Producer after inserting new entry in DB entry.getCommunityProduced() = " + entry.getCommunityProduced());
 
-            // 5) Speichern (Insert oder Update)
-            repository.save(entry);
-            System.out.println(entry.toString() + " from Producer saved in DB");
-            JSONObject msg = new JSONObject()
-                    .put("hour", entry.getHour().toInstant())
-                    .put("communityProduced", entry.getCommunityProduced())
-                    .put("communityUsed", entry.getCommunityUsed())
-                    .put("gridUsed", entry.getGridUsed());
-
-            rabbit.convertAndSend("current_percentage_mq", msg.toString());
-            System.out.println(msg.toString() + "from UsageServiceProducer sent to current_percentage_mq");
 
 
 

@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
@@ -28,8 +31,14 @@ public class EnergyController {
     @GetMapping("/current")
     public List<CurrentPercentageEntity> getCurrentData() {
 
-        CurrentPercentageEntity last =
-                currentPercentageDbRepository.findTopByOrderByHourDesc();
+        LocalDateTime dateTime = LocalDateTime.now();
+        dateTime = dateTime.truncatedTo(ChronoUnit.HOURS);
+
+        Date hour = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+
+
+        CurrentPercentageEntity last = currentPercentageDbRepository.findByHour(hour);
 
         List<CurrentPercentageEntity> result = new ArrayList<>();
         if (last != null) {
@@ -39,6 +48,7 @@ public class EnergyController {
              ) {
             System.out.println(r.toString());
         }
+        System.out.println(result.toString());
         return result;
     }
 

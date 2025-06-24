@@ -32,20 +32,17 @@ public class CurrentPercentageServiceTest {
                 + "\"gridUsed\":2.0"
                 + "}";
 
-        // Methode aufrufen
+
         service.enterCurrentPercentageInDB(json);
 
 
         // Erwartete Berechnungen
         double expectedDepleted = (18.0 / 20.0) * 100; // 90.0
-        double expectedGridPortion = (18.0 / (18.0 + 2.0)) * 100; // 90.0
+        double expectedGridPortion = (2.0 / (18.0 + 2.0)) * 100; // 90.0
         Date expectedDate = Date.from(Instant.parse("2025-06-19T13:00:00Z"));
 
 
         // Überprüfen, ob das Repository mit korrekten Werten aufgerufen wurde
-
-        //verify(repository).save(any(CurrentPercentageEntity.class));
-
         verify(repository).save(ArgumentMatchers.argThat(entity ->
                         expectedDate.equals(entity.getHour()) &&
                                 Math.abs(entity.getCommunityDepleted() - expectedDepleted) < 0.001 &&

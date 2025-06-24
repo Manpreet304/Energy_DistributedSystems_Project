@@ -44,7 +44,7 @@
             </HBox>
             <HBox prefHeight="38.0" prefWidth="197.0">
                <children>
-                  <Button fx:id="btnRefresh" alignment="TOP_LEFT" mnemonicParsing="false" onAction="#handleRefresh" text="Refresh">
+                  <Button fx:id="btnRefresh" alignment="TOP_LEFT" mnemonicParsing="false" onAction="#onRefreshClick" text="Refresh">
                      <font>
                         <Font size="14.0" />
                      </font>
@@ -75,7 +75,7 @@
             </HBox>
             <HBox prefHeight="24.0" prefWidth="290.0">
                <children>
-                  <Button fx:id="btnShowData" mnemonicParsing="false" onAction="#handleShowData" text="Show Data">
+                  <Button fx:id="btnShowData" mnemonicParsing="false" onAction="#onShowDataClick" text="Show Data">
                      <font>
                         <Font size="14.0" />
                      </font>

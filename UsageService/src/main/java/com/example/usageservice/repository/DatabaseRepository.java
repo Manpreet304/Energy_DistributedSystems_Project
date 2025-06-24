@@ -7,5 +7,5 @@ import java.util.Date;
 import java.util.Optional;
 
 public interface DatabaseRepository extends JpaRepository<EnergyDataEntity, LocalDateTime> {
-    Optional<EnergyDataEntity> findByHour(Date hour);
+    EnergyDataEntity findByHour(Date hour);
 }

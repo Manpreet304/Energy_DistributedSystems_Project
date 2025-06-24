@@ -1,5 +1,6 @@
 package com.example.energyuser;
 
+import org.json.JSONObject;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,12 +37,12 @@ public class EnergyUser {
     // das muss noch als jsonobj gemacht werden
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
     public void startUser() {
-        String json = String.format(
-                Locale.US,
-                "{\"type\":\"USER\",\"association\":\"COMMUNITY\",\"kwh\":%.3f,\"datetime\":\"%s\"}",
-                randomKwh(),
-                LocalDateTime.now());
+        JSONObject json = new JSONObject()
+                .put("type", "USER")
+                .put("association", "COMMUNITY")
+                .put("kwh", randomKwh())
+                .put("datetime", LocalDateTime.now());
         System.out.println(json);
-        sendMessage(json);
+        sendMessage(json.toString());
     }
 }

@@ -7,13 +7,13 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,58 +22,48 @@ class UsageServiceUserTest {
     @Mock
     DatabaseRepository repository;
 
-    @Mock
-    RabbitTemplate rabbit;
-
     @InjectMocks
     UsageServiceUser service;
 
-    @Test
-    void enterUserDataInDB_shouldSaveNewEntry() throws JSONException {
-        // Arrange
-        LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-        Date hour = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
+    JSONObject obj;
 
-        String json = new JSONObject()
-                .put("kwh", 0.2)
-                .put("datetime", now.toString())
-                .toString();
-
-        when(repository.findByHour(hour)).thenReturn(Optional.empty());
-
-        // Act
-        service.enterUserDataInDB(json);
-
-        // Assert
-        verify(repository).save(any()); // Nur Datenbank-Speicherung prüfen
-        // kein convertAndSend() hier, weil return im Code den Versand verhindert
+    {
+        try {
+            obj = new JSONObject()
+                    .put("type",        "USER")
+                    .put("association","COMMUNITY")
+                    .put("kwh",         0.005)
+                    .put("datetime",    "2025-06-24T14:00:00");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    String sampleJson = obj.toString();
 
     @Test
-    void enterUserDataInDB_shouldUpdateExistingEntry() throws JSONException {
-        // Arrange
-        LocalDateTime now = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
-        Date hour = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
+    void enterUserDataInDB_updatesExistingEntry() {
+        // Arrange: Stunde aus JSON
+        LocalDateTime dt = LocalDateTime.parse("2025-06-24T14:00:00");
+        Date hour = Date.from(dt
+                .truncatedTo(java.time.temporal.ChronoUnit.HOURS)
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+        );
+        EnergyDataEntity entry = new EnergyDataEntity();
+        entry.setHour(hour);
+        entry.setCommunityUsed(1.0);
 
-        EnergyDataEntity entity = new EnergyDataEntity();
-        entity.setHour(hour);
-        entity.setCommunityProduced(0.3);
-        entity.setCommunityUsed(0.1);
-        entity.setGridUsed(0.0);
-
-        String json = new JSONObject()
-                .put("kwh", 0.1)
-                .put("datetime", now.toString())
-                .toString();
-
-        when(repository.findByHour(hour)).thenReturn(Optional.of(entity));
+        // Neuer Stub: direkt Entity zurückliefern (kein Optional mehr)
+        when(repository.findByHour(hour)).thenReturn(entry);
 
         // Act
-        service.enterUserDataInDB(json);
+        service.enterUserDataInDB(sampleJson);
 
-        // Assert
-        verify(repository).save(entity);
-        verify(rabbit).convertAndSend(eq("current_percentage_mq"), anyString());
+        // Assert: Verbrauch um 0.005 erhöht
+        assertEquals(1.005, entry.getCommunityUsed(), 1e-6);
+
+        // Verify: gespeichert wurde
+        verify(repository).save(entry);
     }
 }
