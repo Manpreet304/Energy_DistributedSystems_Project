@@ -29,8 +29,16 @@ public class CurrentPercentageService {
             double communityUsed = obj.getDouble("communityUsed");
             double gridUsed = obj.getDouble("gridUsed");
 
-            double grid_portion = (gridUsed / (communityUsed + gridUsed)) * 100;
-            double grid_depleted = (communityUsed / communityProduced) * 100;
+            double grid_depleted = (communityProduced == 0)
+                    ? 0
+                    : (communityUsed / communityProduced) * 100;
+
+            double grid_portion = (communityUsed + gridUsed == 0)
+                    ? 0
+                    : (gridUsed / (communityUsed + gridUsed)) * 100;
+
+
+
 
             CurrentPercentageEntity percentageEntity = new CurrentPercentageEntity();
             percentageEntity.setHour(hour);

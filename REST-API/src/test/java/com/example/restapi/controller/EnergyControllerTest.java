@@ -11,6 +11,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -31,28 +34,55 @@ class EnergyControllerTest {
     private EnergyController controller;
 
     @Test
-    void testGetCurrentData() {
-        // 1) Ein einzelnes Entity erzeugen und mit Werten befüllen
+    void getCurrentData_returnsEntityFromRepository() {
+        // Arrange: genau jene volle Stunde, die der Controller auch nimmt
+        LocalDateTime nowHour = LocalDateTime.now()
+                .truncatedTo(ChronoUnit.HOURS);
+        Date hour = Date.from(nowHour.atZone(ZoneId.systemDefault()).toInstant());
+
         CurrentPercentageEntity entity = new CurrentPercentageEntity();
-        entity.setHour(new Date());
+        entity.setHour(hour);
         entity.setCommunityDepleted(100.0);
         entity.setGridPortion(20.0);
 
-        // 2) Verhalten des Mocks festlegen
-        when(currentPercentageDbRepository.findTopByOrderByHourDesc())
+        // Stub exakt mit diesem hour-Datum
+        when(currentPercentageDbRepository.findByHour(hour))
                 .thenReturn(entity);
 
-        // 3) Controller-Methode aufrufen
-        List<CurrentPercentageEntity> result = controller.getCurrentData();
+        // Act
+        CurrentPercentageEntity result = controller.getCurrentData();
 
-        // 4) Rückgabe prüfen
-        assertEquals(1, result.size());
-        assertEquals(100.0, result.get(0).getCommunityDepleted());
-        assertEquals(20.0,  result.get(0).getGridPortion());
+        // Assert: Werte aus dem Stub-Entity
+        assertEquals(100.0, result.getCommunityDepleted());
+        assertEquals(20.0,  result.getGridPortion());
 
-        // 5) Sicherstellen, dass das Repository aufgerufen wurde
-        verify(currentPercentageDbRepository).findTopByOrderByHourDesc();
+        // Verify: Methode wurde genau mit hour aufgerufen
+        verify(currentPercentageDbRepository).findByHour(hour);
     }
+
+    @Test
+    void getCurrentData_returnsDefaultWhenNoEntry() {
+        // Arrange: gleiche Stunde
+        LocalDateTime nowHour = LocalDateTime.now()
+                .truncatedTo(ChronoUnit.HOURS);
+        Date hour = Date.from(nowHour.atZone(ZoneId.systemDefault()).toInstant());
+
+        // Stub gibt null zurück
+        when(currentPercentageDbRepository.findByHour(hour))
+                .thenReturn(null);
+
+        // Act
+        CurrentPercentageEntity result = controller.getCurrentData();
+
+        // Assert: Default-Entity (0-Werte) mit korrektem hour
+        assertEquals(hour,  result.getHour());
+        assertEquals(0.0,   result.getCommunityDepleted());
+        assertEquals(0.0,   result.getGridPortion());
+
+        // Verify
+        verify(currentPercentageDbRepository).findByHour(hour);
+    }
+
 
     @Test
     void testGetHistoricalData() throws Exception {

@@ -28,28 +28,26 @@ public class EnergyController {
         this.energyDbRepository = energyDbRepository;
     }
 
-    @GetMapping("/current")
-    public List<CurrentPercentageEntity> getCurrentData() {
+   @GetMapping("/current")
+    public CurrentPercentageEntity getCurrentData() {
 
         LocalDateTime dateTime = LocalDateTime.now();
-        dateTime = dateTime.truncatedTo(ChronoUnit.HOURS);
+         dateTime = dateTime.truncatedTo(ChronoUnit.HOURS);
 
         Date hour = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
 
 
 
-        CurrentPercentageEntity last = currentPercentageDbRepository.findByHour(hour);
+        CurrentPercentageEntity current = currentPercentageDbRepository.findByHour(hour);
 
-        List<CurrentPercentageEntity> result = new ArrayList<>();
-        if (last != null) {
-            result.add(last);
-        }
-        for (CurrentPercentageEntity r:result
-             ) {
-            System.out.println(r.toString());
-        }
-        System.out.println(result.toString());
-        return result;
+       if (current == null) {
+           current = new CurrentPercentageEntity();      // no-arg-Ctor muss existieren
+           current.setHour(hour);
+           current.setCommunityDepleted(0.0);
+           current.setGridPortion(0.0);
+       }
+
+       return current;
     }
 
 

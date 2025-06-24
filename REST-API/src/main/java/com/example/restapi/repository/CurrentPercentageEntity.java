@@ -31,6 +31,8 @@ public class CurrentPercentageEntity {
         this.hour = hour;
     }
 
+
+
     public double getCommunityDepleted() {
         return communityDepleted;
     }
