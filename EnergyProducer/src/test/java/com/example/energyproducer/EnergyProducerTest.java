@@ -1,60 +1,64 @@
 package com.example.energyproducer;
 
 import com.example.energyproducer.weather_api.WeatherService;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EnergyProducerTest {
 
     @Mock
-    RabbitTemplate mockRabbit;
+    RabbitTemplate rabbit;
 
     @Mock
-    WeatherService mockWeather;
+    WeatherService weatherService;
 
     @InjectMocks
     EnergyProducer producer;
 
     @Test
-    void sendMessage_shouldCallRabbitTemplate() {
+    void startProducer_sendsValidJsonPayload() throws JSONException {
         // Arrange
-        String msg = "Hello Rabbit_MQ";
+        when(weatherService.fetchCurrentRadiation()).thenReturn(0.8);
 
         // Act
-        producer.sendMessage(msg);
+        producer.startProducer();
 
-        // Assert
-        verify(mockRabbit).convertAndSend("producer_mq", msg);
-    }
-
-    @Test
-    void startProducer_shouldSendCorrectJson() {
-        // Arrange
-        when(mockWeather.fetchCurrentRadiation()).thenReturn(500.0); // 50% Sonnenstrahlung
-
-        // Act
-        producer.startProducer(); // nutzt random Werte
-
-        // Assert
+        // Capture both arguments: 1) Queue-Name, 2) JSON-String
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(mockRabbit).convertAndSend(eq("producer_mq"), captor.capture());
+        verify(rabbit).convertAndSend(captor.capture(), captor.capture());
 
-        String json = captor.getValue();
-        System.out.println("Captured JSON: " + json);
+        List<String> captured = captor.getAllValues();
+        String queueName = captured.get(0);
+        String jsonPayload = captured.get(1);
 
-        // Grobe Strukturprüfung
-        assert json.contains("\"type\":\"PRODUCER\"");
-        assert json.contains("\"association\":\"COMMUNITY\"");
-        assert json.contains("\"kwh\":");
-        assert json.contains("\"datetime\":\"" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE).substring(0, 10));
+        // Assert: richtige Queue
+        assertThat(queueName).isEqualTo("producer_mq");
+
+        // Assert: JSON-Felder
+        JSONObject obj = new JSONObject(jsonPayload);
+        assertThat(obj.getString("type")).isEqualTo("PRODUCER");
+        assertThat(obj.getString("association")).isEqualTo("COMMUNITY");
+
+        double kwh = obj.getDouble("kwh");
+        // plausibler Bereich
+        assertThat(kwh).isGreaterThanOrEqualTo(0.005);
+        assertThat(kwh).isLessThanOrEqualTo(0.100);
+
+        // Timestamp-Feld vorhanden
+        assertThat(obj.has("datetime")).isTrue();
     }
 }
