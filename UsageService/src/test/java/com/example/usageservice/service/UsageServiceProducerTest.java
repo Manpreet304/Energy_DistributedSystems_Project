@@ -2,8 +2,6 @@ package com.example.usageservice.service;
 
 import com.example.usageservice.repository.DatabaseRepository;
 import com.example.usageservice.repository.EnergyDataEntity;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

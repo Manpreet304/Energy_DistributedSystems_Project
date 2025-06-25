@@ -1,6 +1,5 @@
 package at.uastw.disys_project;
 
-import com.google.gson.JsonObject;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -9,7 +8,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -39,7 +37,7 @@ public class EnergyGUI {
 
         // Refresh Button
         // Muss in FXML als fx:id="btnRefresh" vorhanden sein und mit fx:controller verknüpft
-        // Oder durch z. B. Button-Handler aus FXML über @FXML public void handleRefreshButton()...
+        // Oder durch z.B. Button-Handler aus FXML über @FXML public void handleRefreshButton()...
 
         // SHOW DATA Button (historische Werte)
         // Beispielhaft über separate Methode aufgerufen

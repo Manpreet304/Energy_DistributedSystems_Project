@@ -5,12 +5,10 @@ import com.example.restapi.dto.TotalEnergyBetweenDates;
 import com.example.restapi.repository.CurrentPercentageDB;
 import com.example.restapi.repository.CurrentPercentageEntity;
 import com.example.restapi.repository.EnergyDB;
-import com.example.restapi.repository.EnergyDataEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.PostConstruct;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;

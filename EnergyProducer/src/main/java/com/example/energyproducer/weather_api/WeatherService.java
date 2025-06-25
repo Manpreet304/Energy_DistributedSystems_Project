@@ -13,6 +13,8 @@ import java.util.Locale;
 @Service
 public class WeatherService {
 
+    // wenn man ohne @Value -> getter und setter definieren und Konstruktor mit this.
+
     @Value("${weather.api.base-url}")
     private String baseUrl;
 
@@ -22,35 +24,39 @@ public class WeatherService {
     @Value("${weather.api.longitude}")
     private double longitude;
 
+    // Objekt, mit dem wir eine Anfrage ins Internet schicken können
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Ruft das JSON komplett als String ab, parst es mit JSONObject
-     * und liefert den letzten (also aktuellen) shortwave_radiation–Wert.
-     */
+    // Ruft das JSON komplett als String ab, parst es mit JSONObject und liefert den letzten (also aktuellen) shortwave_radiation–Wert.
     public double fetchCurrentRadiation() {
         String url = baseUrl +
                 "?latitude="  + latitude +
                 "&longitude=" + longitude +
                 "&hourly=shortwave_radiation" +
-                "&timezone=auto";                 // wichtig: lokale Zeit!
+                "&timezone=auto"; // auto: lokale Zeit!
 
-        String json = restTemplate.getForObject(url, String.class);
+        String jsonText = restTemplate.getForObject(url, String.class);
 
-        JSONObject hourly = new JSONObject(json).getJSONObject("hourly");
-        JSONArray times   = hourly.getJSONArray("time");
-        JSONArray rad     = hourly.getJSONArray("shortwave_radiation");
+        JSONObject root = new JSONObject(jsonText); // komplettes  JSON
+        JSONObject hourly = root.getJSONObject("hourly"); // Abschnitt mit stündlichen Werten
+        JSONArray timeArray = hourly.getJSONArray("time"); // Liste mit Zeitpunkten
+        JSONArray radiationArray = hourly.getJSONArray("shortwave_radiation"); // Liste mit Strahlungswerten
 
-        String now = LocalDateTime.now()
-                .withMinute(0).withSecond(0).withNano(0) // auf volle Stunde
-                .toString();                              // Format yyyy-MM-ddTHH:mm
+        String currentHour = LocalDateTime.now() //Radiationwert nur von dieser Stunde
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0)
+                .toString(); // Format yyyy-MM-ddTHH:mm
 
-        for (int i = 0; i < times.length(); i++) {
-            if (times.getString(i).startsWith(now)) {   // Zeitstempel passt
-                return rad.getDouble(i);
+        // Alle Zeiten durchgehen, passenden Zeitpunkt suchen
+        for (int i = 0; i < timeArray.length(); i++) {
+            String time = timeArray.getString(i);
+            if (time.startsWith(currentHour)) {
+                // Wenn Zeit passt → passenden Strahlungswert zurückgeben
+                return radiationArray.getDouble(i);
             }
         }
-        return 0; // Fallback
+        return 0;
     }
 
 }
