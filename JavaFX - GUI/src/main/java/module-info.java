@@ -8,7 +8,6 @@ module at.uastw.disys_project {
     opens at.uastw.disys_project to javafx.fxml
             , com.google.gson;
 
-    opens at.uastw.disys_project.dto to com.google.gson;
 
     exports at.uastw.disys_project;
 }
