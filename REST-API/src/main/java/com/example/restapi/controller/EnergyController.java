@@ -59,9 +59,9 @@ public class EnergyController {
         @RequestParam("dateEnd")
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") Date dateEnd) {
 
-        double produced = energyDbRepository.selectCommunityProducedTotals();
-        double used = energyDbRepository.selectCommunityUsedTotals();
-        double grid = energyDbRepository.selectGridUsedTotals();
+        double produced = energyDbRepository.selectCommunityProducedTotals(dateStart, dateEnd);
+        double used = energyDbRepository.selectCommunityUsedTotals(dateStart, dateEnd);
+        double grid = energyDbRepository.selectGridUsedTotals(dateStart, dateEnd);
 
         TotalEnergyBetweenDates energyData = new TotalEnergyBetweenDates(produced, used, grid);
         System.out.println(energyData.toString());
