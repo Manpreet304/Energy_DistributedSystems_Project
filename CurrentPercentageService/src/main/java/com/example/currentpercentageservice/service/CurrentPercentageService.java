@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Service
@@ -23,7 +24,7 @@ public class CurrentPercentageService {
             JSONObject obj = new JSONObject(json);
 
             Date hour = Date.from(
-                    java.time.Instant.parse(obj.getString("hour")));
+                    Instant.parse(obj.getString("hour")));
 
             double communityProduced = obj.getDouble("communityProduced");
             double communityUsed = obj.getDouble("communityUsed");

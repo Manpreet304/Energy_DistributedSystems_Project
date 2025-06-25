@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +33,6 @@ public class EnergyUser {
     }
 
 
-    // das muss noch als jsonobj gemacht werden
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
     public void startUser() {
         JSONObject json = new JSONObject()
