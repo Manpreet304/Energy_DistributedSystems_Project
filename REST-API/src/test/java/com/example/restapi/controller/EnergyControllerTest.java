@@ -86,20 +86,22 @@ class EnergyControllerTest {
 
     @Test
     void testGetHistoricalData() throws Exception {
+
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        Date start = fmt.parse("2025-06-19T12:00:00");
+        Date end   = fmt.parse("2025-06-19T13:00:00");
         // 1) Dummy-Werte festlegen
         double produced = 12.34;
         double used     =  5.67;
         double grid     =  6.67;
 
 
-        when(energyDbRepository.selectCommunityProducedTotals()).thenReturn(produced);
-        when(energyDbRepository.selectCommunityUsedTotals())   .thenReturn(used);
-        when(energyDbRepository.selectGridUsedTotals())        .thenReturn(grid);
+        when(energyDbRepository.selectCommunityProducedTotals(start, end)).thenReturn(produced);
+        when(energyDbRepository.selectCommunityUsedTotals(start, end))   .thenReturn(used);
+        when(energyDbRepository.selectGridUsedTotals(start, end))        .thenReturn(grid);
 
 
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        Date start = fmt.parse("2025-06-19T12:00:00");
-        Date end   = fmt.parse("2025-06-19T13:00:00");
+
 
 
         TotalEnergyBetweenDates result = controller.getHistoricalData(start, end);
@@ -110,8 +112,8 @@ class EnergyControllerTest {
         assertEquals(grid,     result.getTotalGridUsed(),     "Grid stimmt nicht");
 
 
-        verify(energyDbRepository).selectCommunityProducedTotals();
-        verify(energyDbRepository).selectCommunityUsedTotals();
-        verify(energyDbRepository).selectGridUsedTotals();
+        verify(energyDbRepository).selectCommunityProducedTotals(start, end);
+        verify(energyDbRepository).selectCommunityUsedTotals(start, end);
+        verify(energyDbRepository).selectGridUsedTotals(start, end);
 }
 }
